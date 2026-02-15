@@ -1,0 +1,41 @@
+body {
+    text-align: center;
+    background-color: beige;
+    font-family: Impact;
+}
+
+h1 {
+    font-size: 30px;
+    font-style: italic;
+    text-shadow: -1px 2px 3px darkgrey ;
+    color: brown;
+}
+
+.board-container table {
+    margin: auto;
+}
+
+.board-container button {
+    height: 30px;
+    width: 30px;
+
+    border: 1px darkgrey;
+    background: linear-gradient(-150deg, aquamarine, lightblue);
+}
+
+.board-container button:hover {
+    background: darkcyan;
+}
+
+/* .board-container {
+
+} */
+
+.board-container button.clicked {
+    background: linear-gradient(-150deg, darkblue, purple);
+}
+
+/* .board-container {
+    
+} */
+
