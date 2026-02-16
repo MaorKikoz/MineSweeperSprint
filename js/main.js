@@ -2,12 +2,18 @@
 
 const MINE = '💣'
 const FLAG = '🚩'
+const LIFE = '💓'
+const HINT = '🔅'
 // const SMILEYNORMAL = ''
 var firstClick = true
+var gLives
+var gIntervalId
+var hiScore
 
 const gLevel = {
   SIZE: 4,
-  MINES: 2
+  MINES: 2,
+  LIFE: 1
 }
 
 const gGame = {
@@ -18,17 +24,23 @@ const gGame = {
 }
 
 var gBoard
+//localStorage.setItem('hiScore', score)
+//localStorage.getItem('hiScore')
 
-
-function onSetLevel(size, mines) {
+function onSetLevel(size, mines, lives) {
   gLevel.SIZE = size
   gLevel.MINES = mines
+  gLevel.LIFE = lives
   onInit()
 }
 
 function onInit() {
+  clearInterval(gIntervalId)
+  gIntervalId = null
   firstClick = true
-  document.querySelector('.timer').innerText = '000'
+  gLives = gLevel.LIFE
+  document.querySelector('.timer').innerText = '00:000'
+  document.querySelector('.life-container').innerText
   gBoard = buildBoard()
   renderBoard(gBoard)
 
@@ -52,15 +64,15 @@ function buildBoard() {
     }
   }
 
-  board[1][2].isMine = true
-  board[3][3].isMine = true
+  // board[1][2].isMine = true
+  // board[3][3].isMine = true
   return board
 }
 
 function setTotalMinesCount(board) {
   for (var i = 0; i < board.length; i++) {
-    for (var j = 0; j < board[0].length; j++) { 
-       board[i][j].minesAroundCount = setMinesNegsCount(board[i][j])
+    for (var j = 0; j < board[0].length; j++) {
+      board[i][j].minesAroundCount = setMinesNegsCount(board[i][j])
     }
   }
 }
@@ -89,12 +101,16 @@ function renderBoard(board) {
       const cell = board[i][j]
       const className = `cell cell-${i}-${j}`
       if (!cell.isRevealed) {
-        strHTML += `<td class="${className}">
-                      <button onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(this, ${i}, ${j})">
-                  </button>
+        if (cell.isMarked) {
+          strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(event, ${i}, ${j})">${FLAG}</td>`
+        } else {
+          strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(event, ${i}, ${j})">
                   </td> `
-      } else if (cell.isRevealed) {
+        }
+      } else if (cell.isRevealed && !cell.isMine) {
         strHTML += `<td class="${className}">${cell.minesAroundCount}</td>`
+      } else if (cell.isMine && cell.isRevealed) {
+        strHTML += `<td class="${className}">${MINE}</td>`
       }
     }
     strHTML += '</tr>'
@@ -109,50 +125,75 @@ function onCellClicked(elCell, i, j) {
   if (gBoard[i][j].isRevealed) return
   if (firstClick) {
     firstClick = false
+    randomizeMinesLocation(i, j, gBoard, gLevel.MINES)
     setTotalMinesCount(gBoard)
+    startTimer()
   }
   gBoard[i][j].isRevealed = true
+  gGame.revealedCount++
   if (gBoard[i][j].isMine) {
-    gBoard[i][j].isRevealed = true
-    renderCell(gBoard[i][j].pos, MINE);
-    //checkGameOver()
-    return
-  } 
-  
+    if (gLives > 0) {
+      gBoard[i][j].isRevealed = true
+      gLives--
+    } else {
+      gameOver()
+    }
+  }
+  console.log(gBoard[i][j]);
   //expandReveal(gBoard, elCell, i, j)
   renderBoard(gBoard)
 }
 
-function onCellMarked(elCell, i, j) {
+function onCellMarked(event, i, j) {
+  event.preventDefault()
+  console.log(gBoard[i][j]);
+
   if (gBoard[i][j].isRevealed) return
-  //1.how to stop "context menu" 2. need to turn board[i][j].isMarked = true  
-  gBoard[i][j].isMarked = true
   if (gBoard[i][j].isMarked) {
-    renderCell(gBoard[i][j].pos, FLAG);
-  } 
+    gBoard[i][j].isMarked = false
+    gGame.markedCount--
+  } else {
+    gBoard[i][j].isMarked = true
+    gGame.markedCount++
+  }
   renderBoard(gBoard)
 }
 
 function checkGameOver() {
-  //TODO: 
+  var cellsRevealed = gGame.revealedCount 
+    for (var i = 0; i < gBoard.length; i++) {
+    if (i < 0 || i >= gBoard.length) continue
+
+    for (var j = 0; j < gBoard[0].length + 1; j++) {
+      if (j < 0 || j >= gBoard[0].length) continue
+      //if ()
+      //TODO: pass on every cell a compare to all the counts within gGame
+    }
+  }
+}
+
+function gameOver() {
+  const elModal = document.querySelector('.modal')
+  clearInterval(gIntervalId)
+   //localStorage.setItem('hiScore', score)
+   //localStorage.getItem('hiScore')
 }
 
 function expandReveal(board, elCell, i, j) {
   //TODO: make it so cells clicked that have their .minesAroundCount = 0 also reveal other neighboring cells of the same attribute,
-  //then stop at cells that have their .minesAroundCount > 0, and also not reveal any mines.
+  //then stop at cells that have their .minesAroundCount > 0, and also not reveal any mines. If isMine = true, reveal all mines. 
 }
 
-function renderCell(pos, value) {
-    const selector = `.cell-${pos.i}-${pos.j}`
-    const elCell = document.querySelector(selector)
-     console.log(pos, value, elCell);
-     
-    if (elCell) {
-      elCell.innerHTML = value
-    } else {
-      console.error('element not found')
-    }
-}
+// function renderCell(selector, pos, value) {
+//     const elCell = document.querySelector(selector)
+//      console.log(pos, value, elCell);
+
+//     if (elCell) {
+//       elCell.innerHTML = value
+//     } else {
+//       console.error('element not found')
+//     }
+// }
 
 // function onCellClicked(elCell, clickedNum) {
 //     if (clickedNum !== gCurrNum) return
@@ -178,4 +219,10 @@ function startTimer() {
   }, 10)
 }
 
+function randomizeMinesLocation(idxI, idxJ, board, amount) {
+  for (var i = 0; i < amount; i++) {
+    let cell = getRandomEmptyCell(idxI, idxJ)
+    board[cell.i][cell.j].isMine = true
+  }
+}
 

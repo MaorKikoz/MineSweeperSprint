@@ -15,7 +15,7 @@ h1 {
     margin: auto;
 }
 
-.board-container button {
+.board-container td {
     height: 30px;
     width: 30px;
 
@@ -23,7 +23,7 @@ h1 {
     background: linear-gradient(-150deg, aquamarine, lightblue);
 }
 
-.board-container button:hover {
+.board-container td:hover {
     background: darkcyan;
 }
 
@@ -31,7 +31,7 @@ h1 {
 
 } */
 
-.board-container button.clicked {
+.board-container td.clicked {
     background: linear-gradient(-150deg, darkblue, purple);
 }
 

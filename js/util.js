@@ -24,3 +24,21 @@ function getPassedTimeF(timeDiff) {
      return `${(seconds + '').padStart(2, '0')} : ${milliSec}`
 }
 
+function getEmptyCells(idxI, idxJ) {
+  const emptyCells = []
+   for (var i = 0; i < gBoard.length; i++){
+        for (var j = 0; j < gBoard[i].length; j++){
+				if (idxI === i && idxJ === j) continue
+            emptyCells.push({i, j})
+		}
+	} 
+  return emptyCells
+}
+
+function getRandomEmptyCell(idxI, idxJ) {
+      const emptyCells = getEmptyCells(idxI, idxJ)
+      if (emptyCells.length === 0) return null
+      
+      var randomIdx = getRandomInt(0, emptyCells.length - 1)
+	  return emptyCells[randomIdx]
+}
