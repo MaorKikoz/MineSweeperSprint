@@ -27,15 +27,14 @@ h1 {
     background: darkcyan;
 }
 
-/* .board-container {
 
-} */
 
 .board-container td.clicked {
     background: linear-gradient(-150deg, darkblue, purple);
 }
 
-/* .board-container {
-    
-} */
+.hidden {
+    display: none;
+}
+
 

@@ -13,32 +13,34 @@ function createMat(size) {
 }
 
 function getRandomInt(min, max) {
-   min = Math.ceil(min)
-   max = Math.floor(max)
-   return Math.floor(Math.random() * (max - min + 1)) + min
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
 function getPassedTimeF(timeDiff) {
-     const seconds = Math.floor(timeDiff / 1000)
-     const milliSec = (timeDiff - seconds * 1000 + '').padStart(3, '0')
-     return `${(seconds + '').padStart(2, '0')} : ${milliSec}`
+    const seconds = Math.floor(timeDiff / 1000)
+    const milliSec = (timeDiff - seconds * 1000 + '').padStart(3, '0')
+    return `${(seconds + '').padStart(2, '0')} : ${milliSec}`
 }
 
 function getEmptyCells(idxI, idxJ) {
-  const emptyCells = []
-   for (var i = 0; i < gBoard.length; i++){
-        for (var j = 0; j < gBoard[i].length; j++){
-				if (idxI === i && idxJ === j) continue
-            emptyCells.push({i, j})
-		}
-	} 
-  return emptyCells
+    const emptyCells = []
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[i].length; j++) {
+            if (idxI === i && idxJ === j) continue
+            if (!gBoard[i][j].isMine) {
+                emptyCells.push({ i, j })
+            }
+        }
+    }
+    return emptyCells
 }
 
 function getRandomEmptyCell(idxI, idxJ) {
-      const emptyCells = getEmptyCells(idxI, idxJ)
-      if (emptyCells.length === 0) return null
-      
-      var randomIdx = getRandomInt(0, emptyCells.length - 1)
-	  return emptyCells[randomIdx]
+    const emptyCells = getEmptyCells(idxI, idxJ)
+    if (emptyCells.length === 0) return null
+
+    var randomIdx = getRandomInt(0, emptyCells.length - 1)
+    return emptyCells[randomIdx]
 }
