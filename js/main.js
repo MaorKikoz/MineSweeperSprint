@@ -4,7 +4,10 @@ const MINE = '💣'
 const FLAG = '🚩'
 const LIFE = '💓'
 const HINT = '🔅'
-// const SMILEYNORMAL = ''
+const SMILEYNORMAL = '🙂'
+const SMILEYHAPPY = '😀'
+const SMILEYDEAD = '💀'
+const SMILEYWIN = '😎'
 var firstClick = true
 var gLives
 var gIntervalId
@@ -40,24 +43,24 @@ var remainingFlags = gLevel.MINES
 
 function onInit() {
   clearInterval(gIntervalId)
+  gGame.isOn = true
   const elModal = document.querySelector('.modal')
+  const elFlagCounter = document.querySelector('.flags-remaining')
+  document.querySelector('.timer').innerText = '00:000'
+  document.querySelector('.smiley-face').innerText = SMILEYNORMAL
   elModal.classList.add('hidden')
+  remainingFlags = gLevel.MINES
+  elFlagCounter.innerHTML = remainingFlags
+
   gIntervalId = null
   firstClick = true
   gLives = gLevel.LIFE
   gGame.revealedCount = 0
   gGame.markedCount = 0
-  remainingFlags = gLevel.MINES
-  const elFlagCounter = document.querySelector('.flags-remaining')
-  elFlagCounter.innerHTML = remainingFlags
-  document.querySelector('.timer').innerText = '00:000'
+
   renderHealth()
   gBoard = buildBoard()
   renderBoard(gBoard)
-
-  //TODO: Make it so that upon the first click, two sequences are initated:
-  //1. Start the timer that will count exclusively in seconds, and stop when the game is over (also implement an inner save that will keep track of the shortest time beaten)
-  //2. Implement the desired reaction where the mines and the numbered cells are generated during the first click and not prior.
 }
 
 function buildBoard() {
@@ -133,7 +136,7 @@ function renderBoard(board) {
 }
 
 function onCellClicked(elCell, i, j) {
-  if (gBoard[i][j].isRevealed) return
+  if (gBoard[i][j].isRevealed || !gGame.isOn) return
   if (firstClick) {
     firstClick = false
     randomizeMinesLocation(i, j, gBoard, gLevel.MINES)
@@ -161,7 +164,15 @@ function onCellClicked(elCell, i, j) {
   gBoard[i][j].isRevealed = true
   gGame.revealedCount++
   console.log(gBoard[i][j]);
-  //expandReveal(gBoard, elCell, i, j)
+  if (gBoard[i][j].minesAroundCount === 0) {
+    expandReveal(gBoard, elCell, i, j)
+  }
+  document.querySelector('.smiley-face').innerText = SMILEYHAPPY
+  if (gGame.isOn) {
+    setTimeout(() => {
+      document.querySelector('.smiley-face').innerText = SMILEYNORMAL
+    }, 1000)
+  }
   renderBoard(gBoard)
   checkGameOver()
 }
@@ -171,7 +182,7 @@ function onCellMarked(event, i, j) {
   const elFlagCounter = document.querySelector('.flags-remaining')
   console.log(remainingFlags)
 
-  if (gBoard[i][j].isRevealed) return
+  if (gBoard[i][j].isRevealed || !gGame.isOn) return
   if (gBoard[i][j].isMarked) {
     gBoard[i][j].isMarked = false
     gGame.markedCount--
@@ -184,6 +195,7 @@ function onCellMarked(event, i, j) {
   console.log(remainingFlags);
   renderBoard(gBoard)
   elFlagCounter.innerHTML = remainingFlags
+  checkGameOver()
 }
 
 function checkGameOver() {
@@ -199,32 +211,56 @@ function checkGameOver() {
 
 function gameOver() {
   clearInterval(gIntervalId)
+  gGame.isOn = false
   const elModal = document.querySelector('.modal')
   elModal.innerText = 'Kablooey! you lose...'
   elModal.classList.remove('hidden')
+  document.querySelector('.smiley-face').innerText = SMILEYDEAD
+  for (var i = 0; i < gBoard.length; i++) {
+    if (i < 0 || i >= gBoard.length) continue
+
+    for (var j = 0; j < gBoard[0].length; j++) {
+      if (j < 0 || j >= gBoard[0].length) continue
+      if (gBoard[i][j].isMine) gBoard[i][j].isRevealed = true
+    }
+  }
+  renderBoard(gBoard)
 }
 
 function isVictory() {
   clearInterval(gIntervalId)
+  gGame.isOn = false
   const elModal = document.querySelector('.modal')
   elModal.innerText = 'Congatulations!'
   elModal.classList.remove('hidden')
- 
+  document.querySelector('.smiley-face').innerText = SMILEYWIN
   //  localStorage.setItem('hiScore', score)
   //  localStorage.getItem('hiScore')
 }
 
-function expandReveal(board, elCell, i, j) {
+function expandReveal(board, elCell, idxI, idxJ) {
   //TODO: make it so cells clicked that have their .minesAroundCount = 0 also reveal other neighboring cells of the same attribute,
-  //then stop at cells that have their .minesAroundCount > 0, and also not reveal any mines. If isMine = true, reveal all mines. 
+  //then stop at cells that have their .minesAroundCount > 0, and also not reveal any mines. 
+  for (var i = idxI - 1; i <= idxI + 1; i++) {
+    if (i < 0 || i >= board.length) continue
+
+    for (var j = idxJ - 1; j <= idxJ + 1; j++) {
+      if (j < 0 || j >= board[0].length) continue
+      if (i === idxI && j === idxJ) continue
+      if (!board[i][j].isMine && !board[i][j].isRevealed && !board[i][j].isMarked) {
+        board[i][j].isRevealed = true
+        gGame.revealedCount++
+      }
+    }
+  }
 }
 
 function renderHealth() {
   const elHealthBar = document.querySelector('.healthbar')
   var currentHealth = ''
-   for (var i = 0; i < gLives; i++) {
-     currentHealth += LIFE
-   }
+  for (var i = 0; i < gLives; i++) {
+    currentHealth += LIFE
+  }
   elHealthBar.innerText = currentHealth
 }
 
@@ -239,18 +275,6 @@ function renderHealth() {
 //     }
 // }
 
-
-
-function startTimer() {
-  const elTimer = document.querySelector('.timer')
-  const startTime = Date.now()
-
-  gIntervalId = setInterval(() => {
-    const timeDiff = Date.now() - startTime
-    const totalTime = getPassedTimeF(timeDiff)
-    elTimer.innerText = totalTime
-  }, 10)
-}
 
 function randomizeMinesLocation(idxI, idxJ, board, amount) {
   for (var i = 0; i < amount; i++) {

@@ -18,6 +18,18 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
+function startTimer() {
+  const elTimer = document.querySelector('.timer')
+  const startTime = Date.now()
+
+  gIntervalId = setInterval(() => {
+    const timeDiff = Date.now() - startTime
+    const totalTime = getPassedTimeF(timeDiff)
+    elTimer.innerText = totalTime
+  }, 10)
+}
+
+
 function getPassedTimeF(timeDiff) {
     const seconds = Math.floor(timeDiff / 1000)
     const milliSec = (timeDiff - seconds * 1000 + '').padStart(3, '0')
