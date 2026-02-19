@@ -13,20 +13,21 @@
 <body onload="onInit()">
 
   <h1>MineSweeper Sprint Project</h1>
-  
+
   <div class="size-container">
     <h2>Difficulty</h2>
-    <button onclick="onSetLevel(4, 2, 2)">Beginner</button>
-    <button onclick="onSetLevel(8, 14 , 5)">Medium</button>
-    <button onclick="onSetLevel(12, 32, 7)">Expert</button>
+    <button onclick="onSetLevel(4, 2, 2, 1)">Beginner</button>
+    <button onclick="onSetLevel(8, 14 , 5, 3)">Medium</button>
+    <button onclick="onSetLevel(12, 32, 7 ,5)">Expert</button>
   </div>
 
   <div class="main-board">
     <div>
       <span class="flag"> Flags remaining: <span class="flags-remaining"></span> </span>
-      || <span class="smiley-face" onclick="onInit()"></span>
+       <span class="smiley-face" onclick="onInit()"></span>
       <span class="timer">00:000</span>
       <span class="healthbar"></span>
+      <span class="hints" onclick="onHintClick()"></span>
     </div>
     <div class="board-container">
 

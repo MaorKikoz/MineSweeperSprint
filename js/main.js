@@ -11,12 +11,13 @@ const SMILEYWIN = '😎'
 var firstClick = true
 var gLives
 var gIntervalId
-var hiScore
+var gHints
 
 const gLevel = {
   SIZE: 4,
   MINES: 2,
-  LIFE: 2
+  LIFE: 2,
+  HINTS: 1
 }
 
 
@@ -25,21 +26,24 @@ const gGame = {
   isOn: false,
   revealedCount: 0,
   markedCount: 0,
-  secsPassed: 0
+  secsPassed: 0,
+  isHint: false
 }
 
 var gBoard
 //localStorage.setItem('hiScore', score)
 //localStorage.getItem('hiScore')
 
-function onSetLevel(size, mines, lives) {
+function onSetLevel(size, mines, lives, hints) {
   gLevel.SIZE = size
   gLevel.MINES = mines
   gLevel.LIFE = lives
+  gLevel.HINTS = hints
   onInit()
 }
 
 var remainingFlags = gLevel.MINES
+gHints = gLevel.HINTS
 
 function onInit() {
   clearInterval(gIntervalId)
@@ -55,10 +59,11 @@ function onInit() {
   gIntervalId = null
   firstClick = true
   gLives = gLevel.LIFE
+  gHints = gLevel.HINTS
   gGame.revealedCount = 0
   gGame.markedCount = 0
 
-  renderHealth()
+  renderBars()
   gBoard = buildBoard()
   renderBoard(gBoard)
 }
@@ -136,7 +141,7 @@ function renderBoard(board) {
 }
 
 function onCellClicked(elCell, i, j) {
-  if (gBoard[i][j].isRevealed || !gGame.isOn) return
+  if (gBoard[i][j].isRevealed || !gGame.isOn || gBoard[i][j].isMarked) return
   if (firstClick) {
     firstClick = false
     randomizeMinesLocation(i, j, gBoard, gLevel.MINES)
@@ -144,12 +149,40 @@ function onCellClicked(elCell, i, j) {
     startTimer()
   }
 
+  if (gGame.isHint) {
+    var revealed = []
+    for (let a = i - 1; a <= i + 1; a++) {
+      if (a < 0 || a >= gBoard.length) continue
+
+      for (let b = j - 1; b <= j + 1; b++) {
+        if (b < 0 || b >= gBoard[0].length) continue
+        if (gBoard[a][b].isRevealed) {
+          var pos = { a: a, b: b }
+          revealed.push(pos)
+          continue
+        } else {
+          gBoard[a][b].isRevealed = true
+          renderBoard(gBoard)
+          setTimeout(() => {
+            console.log(a, b)
+            gBoard[a][b].isRevealed = false
+            renderBoard(gBoard)
+          }, 1500)
+        }
+      }
+    }
+    gGame.isHint = false
+    gHints--
+    renderBars()
+    return
+  }
+
   if (gBoard[i][j].isMine) {
     if (gLives > 0) {
       gBoard[i][j].isRevealed = true
       renderBoard(gBoard)
       gLives--
-      renderHealth()
+      renderBars()
       if (gLives === 0) {
         gameOver()
         return
@@ -163,7 +196,6 @@ function onCellClicked(elCell, i, j) {
   }
   gBoard[i][j].isRevealed = true
   gGame.revealedCount++
-  console.log(gBoard[i][j]);
   if (gBoard[i][j].minesAroundCount === 0) {
     expandReveal(gBoard, elCell, i, j)
   }
@@ -234,8 +266,7 @@ function isVictory() {
   elModal.innerText = 'Congatulations!'
   elModal.classList.remove('hidden')
   document.querySelector('.smiley-face').innerText = SMILEYWIN
-  //  localStorage.setItem('hiScore', score)
-  //  localStorage.getItem('hiScore')
+  //trackFastest()
 }
 
 function expandReveal(board, elCell, idxI, idxJ) {
@@ -250,31 +281,29 @@ function expandReveal(board, elCell, idxI, idxJ) {
       if (!board[i][j].isMine && !board[i][j].isRevealed && !board[i][j].isMarked) {
         board[i][j].isRevealed = true
         gGame.revealedCount++
+        if (board[i][j].minesAroundCount === 0) {
+          expandReveal(gBoard, gBoard[i][j], gBoard[i], gBoard[j])
+        }
       }
     }
   }
 }
 
-function renderHealth() {
+function renderBars() {
   const elHealthBar = document.querySelector('.healthbar')
+  const elHints = document.querySelector('.hints')
   var currentHealth = ''
+  var currentHints = ''
   for (var i = 0; i < gLives; i++) {
     currentHealth += LIFE
   }
+
+  for (var i = 0; i < gHints; i++) {
+    currentHints += HINT
+  }
   elHealthBar.innerText = currentHealth
+  elHints.innerText = currentHints
 }
-
-// function renderCell(pos, value) {
-//     const elCell = document.querySelector(selector)
-//      console.log(pos, value, elCell);
-
-//     if (elCell) {
-//       elCell.innerHTML = value
-//     } else {
-//       console.error('element not found')
-//     }
-// }
-
 
 function randomizeMinesLocation(idxI, idxJ, board, amount) {
   for (var i = 0; i < amount; i++) {
@@ -283,3 +312,16 @@ function randomizeMinesLocation(idxI, idxJ, board, amount) {
   }
 }
 
+function onHintClick() {
+  if (firstClick || !gGame.isOn) return
+  gGame.isHint = true
+}
+
+function trackFastest() {
+  var fastestTime = gIntervalId
+  if (gIntervalId > fastestTime) {
+    fastestTime = gIntervalId
+  }
+  localStorage.setItem('hiScore', fastestTime)
+  localStorage.getItem('hiScore')
+}
