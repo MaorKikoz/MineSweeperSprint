@@ -282,7 +282,7 @@ function expandReveal(board, elCell, idxI, idxJ) {
         board[i][j].isRevealed = true
         gGame.revealedCount++
         if (board[i][j].minesAroundCount === 0) {
-          expandReveal(gBoard, gBoard[i][j], gBoard[i], gBoard[j])
+          expandReveal(gBoard, gBoard[i][j], gBoard[i][j].pos.i, gBoard[i][j].pos.j)
         }
       }
     }
